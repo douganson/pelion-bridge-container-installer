@@ -4,15 +4,16 @@
 
 DOCKER="docker"
 DOCKER_VER="`docker --version`"
+PRODUCT="pelion-bridge"
 
 if [ "${DOCKER_VER}X" != "X" ]; then
     ID=`${DOCKER} ps -a | grep home | grep arm | awk '{print $1}'`
 
     if [ "${ID}X" != "X" ]; then
-        echo "Stopping $ID"
+        echo "Stopping ${PRODUCT} $ID"
         ${DOCKER} stop ${ID}
     else
-        echo "No running bridge container found... OK"
+        echo "No ${PRODUCT} docker runtime instance found... OK"
     fi
     
     if [ "${ID}X" != "X" ]; then
@@ -22,12 +23,12 @@ if [ "${DOCKER_VER}X" != "X" ]; then
     
     echo "Looking for existing container image..."
 
-    ID=`${DOCKER} images | grep pelion-bridge | awk '{print $3}'`
+    ID=`${DOCKER} images | grep ${PRODUCT} | awk '{print $3}'`
     if [ "${ID}X" != "X" ]; then
-        echo "Removing Image $ID"
+        echo "Removing ${PRODUCT} image $ID"
         ${DOCKER} rmi --force ${ID}
     else
-        echo "No container image found... (OK)"
+        echo "No ${PRODUCT} docker runtime image found... (OK)"
     fi
 else
     echo "ERROR: docker does not appear to be installed! Please install docker and retry."

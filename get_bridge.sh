@@ -1,117 +1,62 @@
 #!/bin/sh
 
-#
-# DEBUG
-#
 # set -x
 
 #
-# Defaults
+# Repo Defaults
 #
-IMAGE="danson/pelion-bridge-container-"
-TYPE="$1"
-SUFFIX=""
 DOCKER="docker"
-BRIDGE_SSH="2222"
-NODE_RED_PORT=""
-MQTT_PORT=""
-API_TOKEN=""
-LONG_POLL=""
-CLOUD_ARGS=""
-LOCAL_NODERED="http://localhost:2880"
+OWNER="danson"
+PRODUCT="pelion-bridge"
+TYPE="$1"
+IMAGE="${OWNER}/${PRODUCT}-container-${TYPE}"
 
 #
-# Set to a base port number (non-SSL). SSL will be base_port_number+1
+# Webhook port number for the bridge
 #
-BASE_PORT_NUMBER=28519
+WEBHOOK_PORT=28520
 
 #
-# Override base port number 
+# SSH in bridge - port number 
 #
-if [ "${OVERRIDE_PORT_NUMBER}X" != "X" ]; then
-    BASE_PORT_NUMBER=${OVERRIDE_PORT_NUMBER}
+BRIDGE_SSH_PORT="2222"
+HOST_SSH_PORT="22"
+
+#
+# Bridge configuration page port
+#
+CONFIG_PAGE_PORT="8234"
+
+#
+# Websocket service port within bridge
+#
+WEBSOCKET_PORT="17362"
+
+#
+# MQTT port customization
+#
+MQTT_PORT="1883"
+HOST_MQTT_PORT="2883"
+MQTT_OPTIONS=""
+
+#
+# MQTT(GetStarted) NodeRED dashboard port
+#
+NODE_RED_PORT="2880"
+
+#
+# Enviornment option: Override webhook port number
+#
+if [ "${WEBHOOK_PORT_OVERRIDE}X" != "X" ]; then
+   WEBHOOK_PORT=${WEBHOOK_PORT_OVERRIDE}
 fi
-
-#
-# Calculate the non-SSL and SSL numbers
-#
-NON_SSL_PORT=${BASE_PORT_NUMBER}
-SSL_PORT=`expr ${NON_SSL_PORT} + 1`
 
 #
 # Enable/Disable previous bridge configuration save/restore
 #
 # Uncomment (or set in shell environment) to ENABLE. Comment out to DISABLE
 #
-#SAVE_PREV_CONFIG="YES"
-
-# START: Optional Configuration for Cloud Providers (IBM Watson IoT, MS Azure IoTHub, Amazon IoT)
-#
-# Simply set these and use one of the specified options in the invocation of this script. For example (IBM Watson):
-#
-# % ./get_bridge.sh watson <use-long-polling>
-#
-# Optionally, you can specify the mbed Pelion API Token:
-#
-# % ./get_bridge.sh watson <API Token> <use-long-polling>
-#
-# If you choose to not edit these, you can still go to your installed instance (i.e. https://<docker host ip address>:8234)
-# using username "admin" with default password "admin" and set the values (SAVE after EACH!!!). After set, press "Restart". 
-#
-# IMPORTANT NOTE: You may need to place  a "\" (i.e. back slash...)  in front of any specific key token values (i.e. & or / etc...) within
-#                 the creds for your cloud account. sed() can mis-interpet them otherwise.
-#
-#                 Example: 
-#
-#                           AWS_IOT_ACCESS_KEY_TOKEN="dkdkjejuf98e7&dldk"
-#
-#                 Should be changed to:
-#
-#                           AWS_IOT_ACCESS_KEY_TOKEN="dkdkjejuf98e7\&dldk"
-#
-#
-
-#
-# mbed Pelion API Token
-#
-MDC_API_TOKEN=""
-
-#
-# IBM Watson IoT Credentials
-#
-IBM_WATSON_API_KEY=""
-IBM_WATSON_AUTH_TOKEN=""
-
-#
-# MS IoTHub Credentials
-#
-MS_IOTHUB_HUBNAME=""
-MS_IOTHUB_SAS_TOKEN=""
-
-#
-# AWS IoT Credentials
-#
-AWS_IOT_REGION=""
-AWS_IOT_ACCESS_KEY_ID=""
-AWS_IOT_ACCESS_KEY_SECRET=""
-
-#
-# Google Cloud Credentials
-#
-GOOGLE_APP_NAME=""
-GOOGLE_AUTH_JSON=""
-
-#
-# Standalone MQTT Broker
-#
-MQTT_IP_ADDRESS=""
-MQTT_USERNAME=""
-MQTT_PASSWORD=""
-MQTT_CLIENTID=""
-
-#
-# END: Optional Configuration for Cloud Providers (IBM Watson IoT, MS Azure IoTHub, Amazon IoT)
-#
+# SAVE_PREV_CONFIG="YES"
 
 #
 # Environment Selection
@@ -120,110 +65,51 @@ if [ "$(uname)" = "Darwin" ]; then
     if [ ! -h /usr/local/bin/docker-machine ]; then
         # MacOS (toolkit docker installed (OLD))... default is to pin IP address to 192.168.99.100
         IP="192.168.99.100"
-        echo "IP Address:" ${IP}
 	BASE_IP=${IP}
+        echo "IP Address:" ${IP}
         IP=${IP}:
     else
-        # MacOS (native docker installed) - dont use an IP address... 
-	export IP=""
+        # MacOS (native docker installed) - use localhost..."
+	IP="127.0.0.1"
 	BASE_IP=${IP}
-        echo "IP Address:" `hostname -s`
+        echo "IP Address:" ${IP}
+        IP=${IP}:
     fi
 elif [ "$(uname)" = "MINGW64_NT-10.0" ]; then
     # Windows - Must use the Docker Toolkit with the latest VirtualBox installed... pinned to 192.168.99.100 
     IP="192.168.99.100"
-    echo "IP Address:" ${IP} 
     BASE_IP=${IP}
+    echo "IP Address:" ${IP} 
     IP=${IP}:
-    LOCAL_NODERED="http://192.168.99.100:2880"
 elif [ "$(uname)" = "MINGW64_NT-6.1" ]; then
     # Windows - Must use the Docker Toolkit with the latest VirtualBox installed... pinned to 192.168.99.100
     IP="192.168.99.100"
-    echo "IP Address:" ${IP}
     BASE_IP=${IP}
+    echo "IP Address:" ${IP}
     IP=${IP}:
-    LOCAL_NODERED="http://192.168.99.100:2880"
 else
     # (assume) Linux - docker running as native host - use the host IP address
     IP="`ip route get 8.8.8.8 | awk '{print $NF; exit}'`"
-    echo "IP Address:" ${IP}
     BASE_IP=${IP}
-    export IP=${IP}:
+    echo "IP Address:" ${IP}
+    IP=${IP}:
 fi
 
+#
+# Sanity Check
+#
 if [ "${TYPE}X" = "X" ]; then
-    echo "Usage: $0 [watson | iothub | aws | google | generic-mqtt | generic-mqtt-getstarted] {Pelion API Token} {use-long-polling}"
+    echo "Usage: $0 [watson | iothub | aws | google | mqtt | mqtt-getstarted]"
     exit 1
 fi
-
-if [ "$2" != "" ]; then
-    API_TOKEN="$2"
-    LONG_POLL="$3"
-fi
-
-if [ "$2" = "use-long-polling" ]; then
-    API_TOKEN="$3"
-    LONG_POLL="$2"
-fi
-
-if [ "${API_TOKEN}X" = "X" ]; then
-   API_TOKEN="${MDC_API_TOKEN}" 
-fi
-
-if [ "${TYPE}" = "watson" ]; then
-    SUFFIX="iotf"
-    CLOUD_ARGS="${API_TOKEN} ${IBM_WATSON_API_KEY} ${IBM_WATSON_AUTH_TOKEN}"
-    API_TOKEN=""
-fi
-
-if [ "${TYPE}" = "iothub" ]; then
-    SUFFIX="iothub"
-    CLOUD_ARGS="${API_TOKEN} ${MS_IOTHUB_HUBNAME} ${MS_IOTHUB_SAS_TOKEN}"
-    API_TOKEN=""
-fi
-
-if [ "${TYPE}" = "aws" ]; then
-    SUFFIX="awsiot"
-    CLOUD_ARGS="${API_TOKEN} ${AWS_IOT_REGION} ${AWS_IOT_ACCESS_KEY_ID} ${AWS_IOT_ACCESS_KEY_SECRET}"
-    API_TOKEN=""
-fi
-
-if [ "${TYPE}" = "google" ]; then
-    SUFFIX="google"
-    CLOUD_ARGS="${API_TOKEN} ${GOOGLE_APP_NAME} ${GOOGLE_AUTH_JSON}"
-    API_TOKEN=""
-fi
-
-if [ "${TYPE}" = "generic-mqtt" ]; then
-    SUFFIX="mqtt"
-    CLOUD_ARGS="${API_TOKEN} ${MQTT_IP_ADDRESS} ${MQTT_USERNAME} ${MQTT_PASSWORD} ${MQTT_CLIENTID} ${MQTT_PORT}"
-    API_TOKEN=""
-fi
-
-if [ "${TYPE}" = "generic-mqtt-getstarted" ]; then
-    SUFFIX="mqtt-getstarted"
-    NODE_RED_PORT="-p ${IP}2880:1880"
-    MQTT_PORT="-p ${IP}3883:1883"
-fi
-
-if [ "${SUFFIX}X" = "X" ]; then
-    echo "Usage: $0 [watson | iothub | aws | google | generic-mqtt | generic-mqtt-getstarted] {Pelion API Token} {use-long-polling}"
-    exit 2
-fi
-
 
 #
 # Save a previous Configuration
 #
 save_config() {
-    if [ "${IP}X" = "X" ]; then
-	SSH_IP="localhost:"
-    else 
-	SSH_IP=${IP}
-    fi
     echo "Saving previous bridge configuration...(default container pw: arm1234)"
-    #echo scp -q -P 2222 arm@${SSH_IP}pelion-bridge/conf/service.properties .
-    scp -q -P 2222 arm@${SSH_IP}pelion-bridge/conf/service.properties .
+    #echo scp -q -P ${BRIDGE_SSH_PORT} arm@${IP}service/conf/service.properties .
+    scp -q -P ${BRIDGE_SSH_PORT} arm@${IP}service/conf/service.properties .
     if [ $? != 0 ]; then
         echo "Saving of the previous configuration FAILED"
     else
@@ -241,46 +127,67 @@ save_config() {
 #
 restore_config() {
    if [ "${SAVED_CONFIG}X" = "YESX" ]; then
- 	echo "Waiting for 8 seconds to have the container start up..."
-	sleep 8
-	if [ "${IP}X" = "X" ]; then
-            SSH_IP="localhost"
-            START="["
-	    STOP="]:"
-            SCP_IP="${SSH_IP}:"
-        else 
-            SSH_IP=${BASE_IP}
-	    START=""
-	    STOP=""
-	    SCP_IP="${SSH_IP}:"
-        fi
- 	echo "Beginning restoration... Updating known_hosts..."
-	# echo ssh-keygen -R ${START}${SSH_IP}${STOP}2222
-	ssh-keygen -R ${START}${SSH_IP}${STOP}2222
+ 	echo "Waiting for 5 seconds to allow the bridge runtime instance to start up..."
+	sleep 5
+        SSH_IP=${BASE_IP}
+        START="["
+        STOP="]:"
+        SCP_IP="${SSH_IP}:"
+ 	echo "Beginning restoration... Updating SSH known_hosts..."
+	# echo ssh-keygen -R ${START}${SSH_IP}${STOP}${BRIDGE_SSH_PORT}
+	ssh-keygen -R ${START}${SSH_IP}${STOP}${BRIDGE_SSH_PORT}
         echo "Restoring previous configuration... (default container pw: arm1234)"
-        # echo scp -q -P 2222 service.properties arm@${SCP_IP}pelion-bridge/conf
-        scp -q -q -P 2222 service.properties arm@${SCP_IP}pelion-bridge/conf
+        # echo scp -q -P ${BRIDGE_SSH_PORT} service.properties arm@${SCP_IP}service/conf
+        scp -q -q -P ${BRIDGE_SSH_PORT} service.properties arm@${SCP_IP}service/conf
 	if [ $? != 0 ]; then
 	    echo "Restoration of the previous configuration FAILED"
 	else
 	    echo "Restoration succeeded... Restarting the bridge runtime..."
-	    # echo "ssh -f -p 2222 arm@${SSH_IP} /home/arm/restart.sh"
-	    ssh -f -p 2222 arm@${SSH_IP} /home/arm/restart.sh
+	    #echo ssh -l arm -p ${BRIDGE_SSH_PORT} ${SSH_IP} "sh -c 'cd /home/arm; nohup ./restart.sh > /dev/null 2>&1'"
+	    ssh -l arm -p ${BRIDGE_SSH_PORT} ${SSH_IP} "sh -c 'cd /home/arm; nohup ./restart.sh > /dev/null 2>&1'"
 	    if [ $? != 0 ]; then
-                echo "Bridge restart FAILED"
+                echo "Pelion Bridge restart FAILED"
+		exit 4
             else
-                echo "Bridge restarted."
+                echo "Pelion Bridge restarted."
 	    fi
+	    echo "Bridge runtime restarted... Restarting the properties editor..."
+            #echo ssh -l arm -p  ${BRIDGE_SSH_PORT} ${SSH_IP} "sh -c 'cd /home/arm/properties-editor; nohup ./restartPropertiesEditor.sh > /dev/null 2>&1'"
+	    ssh -l arm -p  ${BRIDGE_SSH_PORT} ${SSH_IP} "sh -c 'cd /home/arm/properties-editor; nohup ./restartPropertiesEditor.sh > /dev/null 2>&1'"
+            if [ $? != 0 ]; then
+                echo "Properties editor restart FAILED"
+ 	        exit 5
+            else
+                echo "Properties editor restarted."
+            fi
 	fi
         rm -f service.properties 2>&1 1>/dev/null
    fi
 }
 
+#
+# Finalize the MQTT options
+#
+if [ "${TYPE}X" = "mqttX" ]; then
+    MQTT_OPTIONS="-p ${IP}${MQTT_PORT}:${MQTT_PORT}"
+fi
+if [ "${TYPE}X" = "mqtt-getstartedX" ]; then
+    MQTT_OPTIONS="-p ${IP}${MQTT_PORT}:${HOST_MQTT_PORT} -p ${IP}${NODE_RED_PORT}:1880"
+fi
+
+# 
+# Docker Run port config
+#
+DOCKER_PORT_CONFIG="-p ${IP}${WEBHOOK_PORT}:${WEBHOOK_PORT} -p ${IP}${BRIDGE_SSH_PORT}:${HOST_SSH_PORT} -p ${IP}${CONFIG_PAGE_PORT}:${CONFIG_PAGE_PORT} -p ${IP}${WEBSOCKET_PORT}:${WEBSOCKET_PORT} ${MQTT_OPTIONS}"
+
+#
+# Import and Run
+#
 DOCKER_VER="`docker --version`"
 if [ "${DOCKER_VER}X" = "X" ]; then
     echo "ERROR: docker does not appear to be installed! Please install docker and retry."
-    echo "Usage: $0 [watson | iothub | aws | google | generic-mqtt | generic-mqtt-getstarted] {Pelion API Token} {use-long-polling}"
-    exit 3
+    echo "Usage: $0 [watson | iothub | aws | google | mqtt | mqtt-getstarted]"
+    exit 2
 else
     ID=`${DOCKER} ps -a | grep home | grep arm | awk '{print $1}'`
     if [ "${ID}X" != "X" ]; then
@@ -290,58 +197,50 @@ else
         echo "Stopping $ID"
         docker stop ${ID}
     else
-        echo "No running bridge container found... OK"
+        echo "No running Pelion bridge runtime instance found... OK"
     fi
     
     if [ "${ID}X" != "X" ]; then
-        echo "Removing $ID"
+        echo "Removing Pelion bridge runtime instance $ID"
         docker rm --force ${ID}
     fi
     
-    echo "Looking for existing container image..."
+    echo "Looking for existing Pelion bridge runtime image..."
 
     ID=`${DOCKER} images | grep pelion-bridge | awk '{print $3}'`
     if [ "${ID}X" != "X" ]; then
         echo "Removing Image $ID"
         docker rmi --force ${ID}
     else
-        echo "No container image found... OK"
+        echo "No Pelion bridge runtime image found... OK"
     fi
 
-    IMAGE=${IMAGE}${SUFFIX}
+    #
+    # Pull and Invoke from DockerHub
+    #
     echo ""
-    echo "mbed Pelion bridge Image:" ${IMAGE}
-    echo "Pulling mbed Pelion bridge image from DockerHub(tm)..."
+    echo "Pelion bridge Image:" ${IMAGE}
+    echo "Pulling Pelion device shadow bridge runtime from DockerHub(tm)..."
     ${DOCKER} pull ${IMAGE}
     if [ "$?" = "0" ]; then
-       echo "Starting mbed Pelion bridge image..."
-       echo ${DOCKER} run -d ${MQTT_PORT} ${NODE_RED_PORT} -p ${IP}${NON_SSL_PORT}:${NON_SSL_PORT} -p ${IP}${SSL_PORT}:${SSL_PORT} -p ${IP}${BRIDGE_SSH}:22 -p ${IP}8234:8234 -t ${IMAGE}  /home/arm/start_instance.sh ${API_TOKEN} ${LONG_POLL} ${CLOUD_ARGS}
-       ${DOCKER} run -d ${MQTT_PORT} ${NODE_RED_PORT} -p ${IP}${NON_SSL_PORT}:${NON_SSL_PORT} -p ${IP}${SSL_PORT}:${SSL_PORT} -p ${IP}${BRIDGE_SSH}:22 -p ${IP}8234:8234 -t ${IMAGE}  /home/arm/start_instance.sh ${API_TOKEN} ${LONG_POLL} ${CLOUD_ARGS}
+       echo "Starting Pelion shadow bridge runtime..."
+       echo ${DOCKER} run -d ${DOCKER_PORT_CONFIG} -t ${IMAGE}  /home/arm/start_instance.sh
+       ${DOCKER} run -d ${DOCKER_PORT_CONFIG} -t ${IMAGE}  /home/arm/start_instance.sh
        if [ "$?" = "0" ]; then
-           echo "mbed Pelion bridge started!  SSH is available to log into the bridge runtime"
+           echo "Pelion bridge started!  SSH is available to log into the bridge runtime"
 	   if [ "${SAVE_PREV_CONFIG}X" = "YESX" ]; then
  	       if [ "${SAVED_CONFIG}X" = "YESX" ]; then
 	           echo ""
 		   restore_config $*
-   	       else 
-                   if [ "${NODE_RED_PORT}X" != "X" ]; then
-	                echo ""
-	                echo "Try this!  In your browser, go to: ${LOCAL_NODERED} to access the included NodeRED dashboard"
-                   fi
-               fi
-           else
-	       if [ "${NODE_RED_PORT}X" != "X" ]; then
-                   echo ""
-                   echo "Try this!  In your browser, go to: ${LOCAL_NODERED} to access the included NodeRED dashboard"
                fi
 	   fi
 	   exit 0
        else
-	   echo "mbed Pelion bridge FAILED to start!"
+	   echo "Pelion device shadow bridge runtime FAILED to start!"
            exit 5
        fi
     else 
-	echo "mbed Pelion docker \"pull\" FAILED!" 
+	echo "Pelion device shadow bridge runtime import FAILED!" 
         exit 6
     fi 
 fi

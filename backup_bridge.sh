@@ -2,6 +2,8 @@
 
 USERNAME=arm
 DOCKERIP=localhost
+# if using Windows and Docker Toolkit
+# DOCKERIP=192.168.99.100
 PORT=2222
 
 if [ -f backup.properties ]; then
