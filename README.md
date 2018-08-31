@@ -24,13 +24,13 @@ Requirements:
     
     - a DockerHub account created
 
-    - for "watson | aws | iothub | google" options, 3rd Party cloud accounts must be created. For more information see:
+    - for "watson | awsiot | iothub | google" options, 3rd Party cloud accounts must be created. For more information see:
 
 	watson: https://github.com/ARMmbed/pelion-bridge-container-iotf
 	
 	iothub: https://github.com/ARMmbed/pelion-bridge-container-iothub
 	
-	aws: https://github.com/ARMmbed/pelion-bridge-container-awsiot
+	awsiot: https://github.com/ARMmbed/pelion-bridge-container-awsiot
 
         google: https://github.com/ARMmbed/pelion-bridge-container-google
 
