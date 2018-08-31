@@ -2,7 +2,7 @@ This is the installation script that can pull down and start the Prototype Pelio
 
 Usage:
 
-   get_bridge.sh [watson | iothub | aws | google | mqtt | mqtt-getstarted]
+   get_bridge.sh [watson | iothub | awsiot | google | mqtt | mqtt-getstarted]
 
 Arguments:
 
@@ -10,7 +10,7 @@ Arguments:
 
    iotub - instantiate a bridge for Microsoft IoTHub
 
-   aws - instantiate a bridge for AWS IoT
+   awsiot - instantiate a bridge for AWS IoT
 
    google - instantiate a bridge for Google CloudIoT
 

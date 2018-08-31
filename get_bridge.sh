@@ -59,6 +59,11 @@ fi
 # SAVE_PREV_CONFIG="YES"
 
 #
+# Options
+#
+SCRIPT_OPTIONS="[watson | iothub | awsiot | google | mqtt | mqtt-getstarted]"
+
+#
 # Environment Selection
 #
 if [ "$(uname)" = "Darwin" ]; then
@@ -99,7 +104,7 @@ fi
 # Sanity Check
 #
 if [ "${TYPE}X" = "X" ]; then
-    echo "Usage: $0 [watson | iothub | aws | google | mqtt | mqtt-getstarted]"
+    echo "Usage: $0 ${SCRIPT_OPTIONS}"
     exit 1
 fi
 
@@ -186,7 +191,7 @@ DOCKER_PORT_CONFIG="-p ${IP}${WEBHOOK_PORT}:${WEBHOOK_PORT} -p ${IP}${BRIDGE_SSH
 DOCKER_VER="`docker --version`"
 if [ "${DOCKER_VER}X" = "X" ]; then
     echo "ERROR: docker does not appear to be installed! Please install docker and retry."
-    echo "Usage: $0 [watson | iothub | aws | google | mqtt | mqtt-getstarted]"
+    echo "Usage: $0 ${SCRIPT_OPTIONS}"
     exit 2
 else
     ID=`${DOCKER} ps -a | grep home | grep arm | awk '{print $1}'`
