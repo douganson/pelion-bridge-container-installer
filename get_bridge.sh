@@ -104,6 +104,13 @@ fi
 # Sanity Check
 #
 if [ "${TYPE}X" = "X" ]; then
+    echo "Required option is missing."
+    echo "Usage: $0 ${SCRIPT_OPTIONS}"
+    exit 1
+fi
+if [ "${TYPE}X" != "watsonX" ] && [ "${TYPE}X" != "awsiotX" ] && [ "${TYPE}X" != "iothubX" ] && [ "${TYPE}X" != "googleX" ] && [ "${TYPE}X" != "mqttX" ] && [ "${TYPE}X" != "mqtt-getstartedX" ]
+then
+    echo "Invalid option supplied."
     echo "Usage: $0 ${SCRIPT_OPTIONS}"
     exit 1
 fi
