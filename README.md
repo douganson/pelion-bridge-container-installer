@@ -2,7 +2,7 @@ This is the installation script that can pull down and start the Prototype Pelio
 
 Usage:
 
-   get_bridge.sh [watson | iothub | awsiot | google | mqtt | mqtt-getstarted]
+   get_bridge.sh [watson | iothub | awsiot | google | mqtt | mqtt-getstarted | SAMPLE]
 
 Arguments:
 
@@ -18,9 +18,11 @@ Arguments:
  
    mqtt-getstarted - Like "mqtt" but also has embedded Mosquitto and NodeRED built in by default
 
+   SAMPLE - instantiate a defaulted template SAMPLE - the "peer" is a stubbed out example as a starting point
+
 Requirements:
 
-    - either macOS or Ubuntu environment with a docker runtime installed and operational by the user account
+    - macOS or Ubuntu environment with a docker runtime installed and operational by the user account. Windows with DockerToolkit will also work
     
     - a DockerHub account created
 
@@ -33,6 +35,18 @@ Requirements:
 	awsiot: https://github.com/ARMmbed/pelion-bridge-container-awsiot
 
         google: https://github.com/ARMmbed/pelion-bridge-container-google
+
+    - for "mqtt", you will need to setup and ready a MQTT broker.  For more information see:
+
+        mqtt: https://github.com/ARMmbed/pelion-bridge-container-mqtt
+
+    - for "mqtt-getstarted", this is a fully self-contained demo using an integrated MQTT broker and NodeRED. Simply install.
+
+        mqtt-getstarted: https://github.com/ARMmbed/pelion-bridge-container-mqtt-getstarted
+
+    - for "SAMPLE", this is a stubbed-out template for initiating development of a bridge to a new 3rd Party (see bridge source link below)
+
+        SAMPLE: https://github.com/ARMmbed/pelion-bridge-container-SAMPLE
 
 
 Once the bridge runtime is imported and running, go to the Pelion dashboard and create an API Key. Then:
