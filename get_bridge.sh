@@ -61,7 +61,7 @@ fi
 #
 # Options
 #
-SCRIPT_OPTIONS="[watson | iothub | awsiot | google | mqtt | mqtt-getstarted | SAMPLE]"
+SCRIPT_OPTIONS="[watson | iothub | awsiot | google | mqtt | mqtt-getstarted | sample]"
 
 #
 # Environment Selection
@@ -108,7 +108,7 @@ if [ "${TYPE}X" = "X" ]; then
     echo "Usage: $0 ${SCRIPT_OPTIONS}"
     exit 1
 fi
-if [ "${TYPE}X" != "watsonX" ] && [ "${TYPE}X" != "awsiotX" ] && [ "${TYPE}X" != "iothubX" ] && [ "${TYPE}X" != "googleX" ] && [ "${TYPE}X" != "mqttX" ] && [ "${TYPE}X" != "mqtt-getstartedX" ] && [ "${TYPE}X" != "SAMPLEX" ]
+if [ "${TYPE}X" != "watsonX" ] && [ "${TYPE}X" != "awsiotX" ] && [ "${TYPE}X" != "iothubX" ] && [ "${TYPE}X" != "googleX" ] && [ "${TYPE}X" != "mqttX" ] && [ "${TYPE}X" != "mqtt-getstartedX" ] && [ "${TYPE}X" != "sampleX" ]
 then
     echo "Invalid option supplied."
     echo "Usage: $0 ${SCRIPT_OPTIONS}"
