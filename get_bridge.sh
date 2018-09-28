@@ -61,7 +61,7 @@ fi
 #
 # Options
 #
-SCRIPT_OPTIONS="[watson | iothub | awsiot | google | mqtt | mqtt-getstarted | sample]"
+SCRIPT_OPTIONS="[iotf | iothub | awsiot | google | mqtt | mqtt-getstarted | sample]"
 
 #
 # Environment Selection
@@ -93,9 +93,12 @@ elif [ "$(uname)" = "MINGW64_NT-6.1" ]; then
     echo "IP Address:" ${IP}
     IP=${IP}:
 else
-    # (assume) Linux - docker running as native host - use localhost
-    IP="127.0.0.1"
+    # (assume) Linux - docker running as native host - get the actual IP address (assumes ifconfig installed)
+    IP="`/sbin/ifconfig|grep inet|grep -v inet6|grep -v 127.0.0.1|grep -v Bcast:0.0.0.0|head -1|sed 's/\:/ /'|awk '{print $3}'`"
     BASE_IP=${IP}
+    if [ "${OVERRIDE_IP}X" != "X" ]; then
+        IP=${OVERRIDE_IP}
+    fi
     echo "IP Address:" ${IP}
     IP=${IP}:
 fi
@@ -108,7 +111,7 @@ if [ "${TYPE}X" = "X" ]; then
     echo "Usage: $0 ${SCRIPT_OPTIONS}"
     exit 1
 fi
-if [ "${TYPE}X" != "watsonX" ] && [ "${TYPE}X" != "awsiotX" ] && [ "${TYPE}X" != "iothubX" ] && [ "${TYPE}X" != "googleX" ] && [ "${TYPE}X" != "mqttX" ] && [ "${TYPE}X" != "mqtt-getstartedX" ] && [ "${TYPE}X" != "sampleX" ]
+if [ "${TYPE}X" != "iotfX" ] && [ "${TYPE}X" != "awsiotX" ] && [ "${TYPE}X" != "iothubX" ] && [ "${TYPE}X" != "googleX" ] && [ "${TYPE}X" != "mqttX" ] && [ "${TYPE}X" != "mqtt-getstartedX" ] && [ "${TYPE}X" != "sampleX" ]
 then
     echo "Invalid option supplied."
     echo "Usage: $0 ${SCRIPT_OPTIONS}"
@@ -190,7 +193,10 @@ fi
 # 
 # Docker Run port config
 #
-DOCKER_PORT_CONFIG="-p ${IP}${WEBHOOK_PORT}:${WEBHOOK_PORT} -p ${IP}${BRIDGE_SSH_PORT}:${HOST_SSH_PORT} -p ${IP}${CONFIG_PAGE_PORT}:${CONFIG_PAGE_PORT} -p ${IP}${WEBSOCKET_PORT}:${WEBSOCKET_PORT} ${MQTT_OPTIONS}"
+# HOLD_IP=${IP}
+# IP=":"
+DOCKER_PORT_CONFIG="-p ${IP}${WEBHOOK_PORT}:${WEBHOOK_PORT} -p ${IP}${BRIDGE_SSH_PORT}:${HOST_SSH_PORT} -p ${IP}${CONFIG_PAGE_PORT}:${CONFIG_PAGE_PORT} -p ${IP}${WEBSOCKET_PORT}:${WEBSOCKET_PORT} ${MQTT_OPTIONS} ${LOCAL_DOCKER_PORT_CONFIG}"
+# IP=${HOLD_IP}
 
 #
 # Import and Run

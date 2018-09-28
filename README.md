@@ -2,11 +2,11 @@ This is the installation script that can pull down and start the Prototype Pelio
 
 Usage:
 
-   get_bridge.sh [watson | iothub | awsiot | google | mqtt | mqtt-getstarted | sample]
+   get_bridge.sh [iotf | iothub | awsiot | google | mqtt | mqtt-getstarted | sample]
 
 Arguments:
 
-   watson - instantiate a bridge for Watson IoT
+   iotf - instantiate a bridge for Watson IoT
 
    iotub - instantiate a bridge for Microsoft IoTHub
 
@@ -26,9 +26,9 @@ Requirements:
     
     - a DockerHub account created
 
-    - for "watson | awsiot | iothub | google" options, 3rd Party cloud accounts must be created. For more information see:
+    - for "iotf | awsiot | iothub | google" options, 3rd Party cloud accounts must be created. For more information see:
 
-	watson: https://github.com/ARMmbed/pelion-bridge-container-iotf
+	iotf: https://github.com/ARMmbed/pelion-bridge-container-iotf
 	
 	iothub: https://github.com/ARMmbed/pelion-bridge-container-iothub
 	
