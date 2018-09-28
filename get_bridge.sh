@@ -38,6 +38,9 @@ WEBSOCKET_PORT="17362"
 MQTT_PORT="1883"
 HOST_MQTT_PORT="2883"
 MQTT_OPTIONS=""
+if [ "${OVERRIDE_MQTT_PORT}X" != "X" ]; then
+    MQTT_PORT=${OVERRIDE_MQTT_PORT}
+fi
 
 #
 # MQTT(GetStarted) NodeRED dashboard port
