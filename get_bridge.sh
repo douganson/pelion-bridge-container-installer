@@ -192,6 +192,9 @@ fi
 if [ "${TYPE}X" = "mqtt-getstartedX" ]; then
     MQTT_OPTIONS="-p ${IP}${MQTT_PORT}:${HOST_MQTT_PORT} -p ${IP}${NODE_RED_PORT}:1880"
 fi
+if [ "${NO_MQTT_MAP}X" != "X" ]; then
+    MQTT_OPTIONS=""
+fi
 
 # 
 # Docker Run port config
