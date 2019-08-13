@@ -97,7 +97,8 @@ elif [ "$(uname)" = "MINGW64_NT-6.1" ]; then
     IP=${IP}:
 else
     # (assume) Linux - docker running as native host - get the actual IP address (assumes ifconfig installed)
-    IP="`/sbin/ifconfig|grep inet|grep -v inet6|grep -v 127.0.0.1|grep -v Bcast:0.0.0.0|head -1|sed 's/\:/ /'|awk '{print $3}'`"
+    # IP="`/sbin/ifconfig|grep inet|grep -v inet6|grep -v 127.0.0.1|grep -v Bcast:0.0.0.0|head -1|sed 's/\:/ /'|awk '{print $2}'`"
+    IP="0.0.0.0"
     BASE_IP=${IP}
     if [ "${OVERRIDE_IP}X" != "X" ]; then
         IP=${OVERRIDE_IP}
