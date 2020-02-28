@@ -2,7 +2,7 @@ This is the installation script that can pull down and start the Prototype Pelio
 
 Usage:
 
-   get_bridge.sh [iotf | iothub | awsiot | google | mqtt | mqtt-getstarted | sample]
+   get_bridge.sh [iotf | iothub | awsiot | google | mqtt | mqtt-getstarted | treasuredata | sample]
 
 Arguments:
 
@@ -18,6 +18,8 @@ Arguments:
  
    mqtt-getstarted - Like "mqtt" but also has embedded Mosquitto and NodeRED built in by default
 
+   treasuredata - instantiate a bridge for Treasuredata data ingestion
+
    sample - instantiate a defaulted template sample - the "peer" is a stubbed out example as a starting point
 
 Requirements:
@@ -26,7 +28,7 @@ Requirements:
     
     - a DockerHub account created
 
-    - for "iotf | awsiot | iothub | google" options, 3rd Party cloud accounts must be created. For more information see:
+    - for "iotf | awsiot | iothub | google | treasuredata" options, 3rd Party cloud accounts must be created. For more information see:
 
 	iotf: https://github.com/ARMmbed/pelion-bridge-container-iotf
 	
@@ -35,6 +37,8 @@ Requirements:
 	awsiot: https://github.com/ARMmbed/pelion-bridge-container-awsiot
 
         google: https://github.com/ARMmbed/pelion-bridge-container-google
+
+        treasuredata: https://github.com/ARMmbed/pelion-bridge-container-treasuredata
 
     - for "mqtt", you will need to setup and ready a MQTT broker.  For more information see:
 
